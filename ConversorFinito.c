@@ -64,7 +64,68 @@ int main(void) {
         // Remove zeros a esquerda e a direita
         RemoveZeros(Entrada);
 
-        // Numero preparado para a conversao
+        // --- Numero preparado para a conversao ---
+        /*
+        ESTRUTURA // ESSA ESTRUTURA NAO TEM NADA HAVER COM A FILA DENTRO DA CONVERSAO
+
+        typedef struct ItemFila {
+            char Sinal;
+            size_t Expoente;
+            size_t Ponto;
+            char Erros[3]; // Overflow, Underflow e Truncamento
+            char *Binario;
+        } ItemFila;
+
+        // Leva PosicaoPonto até a posicao referente ao caractere na string e retorna 1 - Possui, 0 - Não possui
+        int PossuiPonto(char *Entrada, size_t *i) {
+            size_t i = 0;
+            char *ProcuraPonto = Entrada;
+
+            while(*ProcuraPonto != '\0' && *ProcuraPonto != '.') {
+                i++;
+                ProcuraPonto++;
+            }
+            
+            if(*ProcuraPonto == '\0') {
+                return 0;
+            } else {
+                return 1;
+            }
+        }
+        // ESSE NUMERO SERA USADO PARA SABER SE SERA NECESSARIO A CONVERSAO DA PARTE FRACIONARIA
+        // TAMBEM SERA USADO PARA DEFINIR O EXPOENTE
+
+        CRIAR FILA PARA CONVERTER A PARTE INTEIRA {
+            REMOVE-SE 2 DO NUMERO E RECEBE A DIVISAO DESSE VALOR POR 8 AMBAS AS PARTES (INTEIRA E FRACIONARIA)
+            CRIA A PRIMEIRA CELULA E ARMAZENA O VALOR RESTO NO VALOR DE EXPOENTE DE CADA CELULA
+            O MAIOR VALOR SERA 8, O QUE SERA FEITO PARA AS OUTRAS CELULAS
+            ELAS RECEBERAO A QUANTIDADE DE CARACTERES 
+        }
+
+        CONVERTE PARA BINARIO A PARTE INTEIRA {
+            DIVIDI-SE OS VALORES POR 2 E O RESTO (DA ULTIMA CELULA) SERA ARMAZENADO NA STRING
+            QUANDO DIVIDINDO POR 2 E A PRIMEIRA CELULA NA DIVISAO INTEIRA FOR ZERO
+            RECEBER O RESTO DA DIVISAO, MULTIPLICAR POR 10⁸
+            DESEMPILHAR A PRIMEIRA
+            EXECUTAR A CONTA DE DIVISAO NA PROXIMA CELULA E ENTAO SOMAR O VALOR NA CELULA
+            O RESTO DA ULTIMA CELULA SERA ARMAZENADO NA STRING ATE ELA ZERAR OU ESTOURAR A PRECISAO (OVERFLOW OU UNDERFLOW)
+        }
+
+        SE RETORNOU 1 A FUNCAO Nº2
+        
+        PARA SABER A POSICAO INICIAL ATÉ O FINAL RECEBER (STRLEN(DECIMAL - ITEM.PONTO - 1)) //CONFIRMAR CALCULO
+
+        CRIAR PILHA PARA A CONVERSAO DA PARTE FRACIONARIA {
+            USAR A MESMA LOGICA DE PILHAS MAS A PARTE DE RESTO FICARA NO TOPO DA PILHA
+            IR MULTIPLICANDO E QUANDO PASSAR O VALOR LIMITE SUBIR O NUMERO PARA A PROXIMA NA MESMA LOGICA
+            SE A ULTIMA PILHA EM X % 10^RESTO FOR ZERO, DESEMPILHA
+            AO LONGO QUE FOR DISTRIBUINDO OS VALORES PARA A STRING, VERIFICAR SE O LIMITE JÁ PASSOU (TRUNCAMENTO)
+            SE AINDA HOUVER VALORES DENTRO DAS PILHAS, MAS CHEGOU O LIMITE, MOSTRAR QUE HOUVE TRUNCAMENTO
+            SENAO  APENAS O NUMERO SERA ARMAZENADO
+        } 
+        
+        // CRIAR AS BIBLIOTECAS DE PILHA PARA CONVERSAO FRACIONARIA, FILA PARA A CONVERSAO INTEIRA
+        */
         
 
         printf(" %s", Entrada);
