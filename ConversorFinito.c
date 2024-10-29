@@ -3,6 +3,7 @@
 #define BLOCK_SIZE 32
 
 int main(void) {
+    Fila Binarios;
     long int M; // Mantissa
     long int L, U; // Expoentes
     char Verificador;
@@ -15,23 +16,22 @@ int main(void) {
     printf("Limite superior do expoente: ");
     scanf(" %li", &U);
 
-    if(M < 1) {
+    if(M < 1|| M > 4294967296) {
         printf("A mantissa nao pode assumir o valor inserido\n");
         return 1;
     }
 
     if(L < -2147483648 || U >  2147483647) {
-        printf("Um ou mais expoentes estao acima do limite de representacao\n");
+        printf("Expoente acima do limite de representacao\n");
+        return 1;
+    }
+    if(L > U) {
+        printf("O limite de expoentes da esquerda nao pode ser maior que o da direita\n");
         return 1;
     }
 
     // Limpa o buffer do stdin para remover qualquer caractere extra
     while ((ch = getchar()) != '\n' && ch != EOF);
-
-    if (L > U) {
-        printf("\nErro: limite inferior maior que limite superior\n");
-        return 1;
-    }
 
     do {
         size_t Alocado = BLOCK_SIZE; // Tamanho inicial alocado
@@ -73,64 +73,75 @@ int main(void) {
         // --- Numero preparado para a conversao ---
         
         // Recebe a posicao do ponto ou o fim da string
-        long int ParteInt = ParteInteira(Entrada);
+        
+        ItemFila I;
+        long int MantissaLimite = M;
+        long int TamanhoEntrada = strlen(Entrada);
+        long int Ponto = PontoOFinal(Entrada);
 
-        if(Entrada[ParteInt] == '\0') {  // Possui apenas parte inteira
-            FilaBI FBI;
-            ItemFila I;
-            long int QtdNums = ParteInt - 1; // Quantidade de numeros
-            int PID = QtdNums / 8; // Modulo da divisao
-            int MD = QtdNums % 8; // Parte inteira da divisao 
+        if(Entrada[1] != '0' || Entrada[2] != '.') {  // Possui apenas parte inteira
+            FilaB FI;
+            
+            long int QtdNums = (Ponto - 1); // Quantidade de numeros
+            int PID = QtdNums / 8; // Parte inteira da divisao 
+            int MD = QtdNums % 8; // Modulo da divisao
             char *PonteiroConversaoI = Entrada + 1;
             
-            FFVazia(&FBI); // Faz fila vazia
+            FFVaziaB(&FI); // Faz fila vazia
 
             if(MD > 0) {
-                ItemBI I;
+                ItemB Iaux;
                 
-                I.Casas = MD;
-                I.DecimalI = ConverteInteiro(PonteiroConversaoI, I.Casas); // Recebe o size_t convertido
-                EnfileiraBI(&FBI,I); // Enfileira 
+                Iaux.Casas = MD;
+                Iaux.Decimal = ConverteInteiro(PonteiroConversaoI, Iaux.Casas); // Recebe o size_t convertido
+                EnfileiraBI(&FI,Iaux); // Enfileira 
             }
             for(size_t i = PID; i > 0; i--) {
-                ItemBI I;
+                ItemB Iaux;
                 
-                I.Casas = 8;
-                I.DecimalI = ConverteInteiro(PonteiroConversaoI, 8);
-                EnfileiraBI(&FBI,I);
+                Iaux.Casas = 8;
+                Iaux.Decimal = ConverteInteiro(PonteiroConversaoI, 8);
+                EnfileiraBI(&FI,Iaux);
             }
 
-            I.Sinal = Entrada[0];
-            ConverteBinarioPI(&FBI,I.Binario,I.Sinal);
-            InverteString(I.Binario);
-            I.Ponto = strlen(I.Binario);
-            I.Expoente =  -I.Ponto;
-            I.Erros[0] = 'n';
-            I.Erros[1] = (I.Expoente < L) ? 's' : 'n';
-            I.Erros[2] = (I.Ponto > M) ? 's' : 'n';
-
-        } else if(ParteInt == 2 && Entrada[1] == '0') { // Possui apenas parte fracionaria
-            PilhaBF PBF;
-
-            FPVaziaBF(&PBF); // Faz pilha vazia
-
-
-        } else { // Possui parte inteira e fracionaria
-            FilaBI FBI;
-            PilhaBF PBF;
-
-            FFVazia(&FBI); // Faz fila vazia
-            FPVaziaBF(&PBF); // Faz pilha vazia
-
+            //Falta
+        } else {
+            I.BinarioI = NULL;
         }
-        
 
+        if(Ponto != 0) { // Possui apenas parte fracionaria
+            FilaB FF;
+            ItemFila IF;
+            long int QtdNums = (TamanhoEntrada - Ponto - 1);
+            int PID = QtdNums / 8; // Parte inteira da divisao 
+            int MD = QtdNums % 8; // Modulo da divisao
+            char *PonteiroConversaoI = Entrada + Ponto + 1; // Ponteiro para o primeiro numero da parte fracionaria
 
+            FFVaziaB(&FF); // Faz pilha vazia
 
-        printf(" %s", Entrada);
+            if(MD > 0) { 
+                ItemB I;
+                
+                I.Casas = MD;
+                I.Decimal = ConverteInteiro(PonteiroConversaoI, I.Casas); // Recebe o size_t convertido
+                EnfileiraB(&FF,I); // Enfileira 
+            }
+            for(size_t i = PID; i > 0; i--) {
+                ItemB I;
+                
+                I.Casas = 8;
+                I.Decimal = ConverteInteiro(PonteiroConversaoI, 8);
+                EnfileiraB(&FF,I);
+                }
 
-        free(Entrada);  // Libera a memória alocada
-        return 0;
+            // Binario
+        } else {
+            I.BinarioF = NULL;
+        }
+
+        // Inserir os outros valores em I antes
+
+        Enfileira(&Binarios,I);
 
         printf("Deseja inserir mais um número? (s/n): ");
         scanf(" %c", &Verificador);
@@ -219,7 +230,7 @@ void RemoveZeros(char Entrada[]) {
 }
 
 // Busca a posição do ponto decimal na string
-long int ParteInteira(char *Entrada) {
+long int PontoOFinal(char *Entrada) {
     long int i = 0;
     char *ProcuraPonto = Entrada;
 
@@ -245,8 +256,9 @@ long int ConverteInteiro(char Entrada[], long int Qtd) {
 }
 
 // Converte parte inteira de um número decimal para binário
-void ConverteBinarioPI(FilaBI *FBI, char *Binario, char Sinal) {
-    size_t Alocado = BLOCK_SIZE, Andado = 0;
+void ConverteBinarioPI(FilaB *F, char **Binario, char Sinal, long int *LimiteU, long int *LimiteM) {
+    size_t Alocado = BLOCK_SIZE;
+    long int Andado = 0;
     char *Convertido = (char *)malloc(Alocado);
 
     if (Convertido == NULL) {
@@ -255,17 +267,17 @@ void ConverteBinarioPI(FilaBI *FBI, char *Binario, char Sinal) {
     }
 
     // Converte a fila de inteiros para binário
-    while (!VFVaziaBI(*FBI)) {
+    while (!VFVaziaB(*F)) {
         int Resto = 0;
-        FBIApontador aux = FBI->Frente;
+        FBApontador aux = F->Frente;
 
         // Divide cada elemento por 2 e coleta o resto (bit)
         while (aux != NULL) {
-            long int Num = aux->I.DecimalI;
-            aux->I.DecimalI = Num / 2;
+            long int Num = aux->I.Decimal;
+            aux->I.Decimal = Num / 2;
 
             if (Resto == 1) {
-                aux->I.DecimalI += 5 * Potenciacao(10, 8 - 1);
+                aux->I.Decimal += 5 * Potenciacao(10, 8 - 1);
                 Resto = 0;
             }
 
@@ -287,8 +299,30 @@ void ConverteBinarioPI(FilaBI *FBI, char *Binario, char Sinal) {
 
         Convertido[Andado++] = Resto + '0';
 
+        if(F->Frente->I.Decimal < 1) {
+            Desenfileira(&F);
+        }
+        // Erro caso estoure o limite do expoente da direita
+        if(Andado > *LimiteU) {
+            while(!VFVaziaB(*F)) {
+                DesenfileiraB(F);
+            }
+            *Binario = NULL;
+            *LimiteU = -1;
+            return;
+        }
+        // Erro caso estoure o limite da mantissa
+        if(Andado > LimiteM) {
+            if(Binario[Andado] == '1' && !VFVaziaB(*F)) {
+                Binario[Andado - 1] = '1';
+            }
+            Binario[Andado] = '\0';
+            *LimiteM = -1;
+            return;
+        }
+
         // Finaliza a string quando a fila estiver vazia
-        if (VFVaziaBI(*FBI)) {
+        if(VFVaziaB(*F)) {
             Convertido[Andado] = '\0';
         }
     }
@@ -327,7 +361,64 @@ void ConverteBinarioPI(FilaBI *FBI, char *Binario, char Sinal) {
         }
     }
 
-    Binario = Convertido;
+    *Binario = Convertido;
+}
+
+// Converte parte fracionaria de um número decimal para binário
+void ConverteBinarioPF(FilaB *F, char **Binario) {
+    size_t Alocado = BLOCK_SIZE, Andado = 0;
+    char *Convertido = (char *)malloc(Alocado);
+
+    if (Convertido == NULL) {
+        perror("Falha na alocação de memória");
+        exit(1);
+    }
+
+    // Converte a fila de inteiros para binário
+    while (!VFVaziaB(*F)) {
+        int Excedente = 0;
+        FBApontador aux = F->Frente;
+
+        // Divide cada elemento por 2 e coleta o resto (bit)
+        while (aux != NULL) {
+            long int Num = aux->I.Decimal * 2;
+            aux->I.Decimal = Num % Potenciacao(10, aux->I.Casas);
+
+            if (Excedente > 0) {
+                aux->I.Decimal += Excedente;
+                Excedente = 0;
+            }
+
+            Excedente = Num / Potenciacao(10, aux->I.Casas);
+            aux = aux->Prox;
+        }
+
+        // Realoca memória se necessário
+        if (Andado + 2 >= Alocado) {
+            Alocado += BLOCK_SIZE;
+            char *temp = realloc(Convertido, Alocado);
+            if (temp == NULL) {
+                perror("Falha ao realocar memória");
+                free(Convertido);
+                exit(1);
+            }
+            Convertido = temp;
+        }
+
+        Convertido[Andado++] = Excedente + '0';
+
+        // Verifica se é necessário remover os itens nulos da lista
+        while(F->Frente->I.Decimal < 1) {
+            Desenfileira(&F);
+        }
+
+        // Finaliza a string quando a fila estiver vazia
+        if (VFVaziaB(*F)) {
+            Convertido[Andado] = '\0';
+        }
+    }
+
+    *Binario = Convertido;
 }
 
 // Inverte a string
@@ -367,18 +458,7 @@ Se for negativo inverter fazendo 0 virar 1 e vice versa
 Armazenar as partes fracionarias em pilhas e ir multiplicando a pilha toda por 2 até o limite ou a conversao se feitas
 Os valores que ficarem maiores que 10⁷-1 na celula do fundo da pilha, será 1 senao 0 no valor da conversao final
 
-ESTRUTURA // ESSA ESTRUTURA NAO TEM NADA HAVER COM A FILA DENTRO DA CONVERSAO       
-        // ESSE NUMERO SERA USADO PARA SABER SE SERA NECESSARIO A CONVERSAO DA PARTE FRACIONARIA
-        // TAMBEM SERA USADO PARA DEFINIR O EXPOENTE
-
-        CRIAR FILA PARA CONVERTER A PARTE INTEIRA {
-            REMOVE-SE 2 DO NUMERO E RECEBE A DIVISAO DESSE VALOR POR 8 AMBAS AS PARTES (INTEIRA E FRACIONARIA)
-            CRIA A PRIMEIRA CELULA E ARMAZENA O VALOR RESTO NO VALOR DE EXPOENTE DE CADA CELULA
-            O MAIOR VALOR SERA 8, O QUE SERA FEITO PARA AS OUTRAS CELULAS
-            ELAS RECEBERAO A QUANTIDADE DE CARACTERES 
-        }
-
-        CONVERTE PARA BINARIO A PARTE INTEIRA {
+        CONVERTE PARA BINARIO A PARTE FRACIONARIA {
             DIVIDI-SE OS VALORES POR 2 E O RESTO (DA ULTIMA CELULA) SERA ARMAZENADO NA STRING
             QUANDO DIVIDINDO POR 2 E A PRIMEIRA CELULA NA DIVISAO INTEIRA FOR ZERO
             RECEBER O RESTO DA DIVISAO, MULTIPLICAR POR 10⁸
