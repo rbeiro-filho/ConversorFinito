@@ -14,6 +14,7 @@ typedef struct ItemFila {
     int Erros[4];           // Indicadores de erros: Overflow, Underflow, Arredondamento, Truncamento
     char *BinarioI;
     char *BinarioF;
+    char *DecimalRetorno;
 } ItemFila;
 
 typedef struct CelulaFila* FilaApontador;

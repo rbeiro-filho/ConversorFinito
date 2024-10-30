@@ -25,31 +25,30 @@ int main(void) {
     char Verificador;
     char ch;
 
-    printf("Parametros:\n- Mantissa: ");
-    scanf(" %li", &M);
-    printf("- Limite inferior do expoente: ");
-    scanf(" %li", &L);
-    printf("- Limite superior do expoente: ");
-    scanf(" %li", &U);
+    do{
+        printf("Parametros:\n- Mantissa: ");
+        scanf(" %li", &M);
+        printf("- Limite inferior do expoente: ");
+        scanf(" %li", &L);
+        printf("- Limite superior do expoente: ");
+        scanf(" %li", &U);
 
-    if(M < 1|| M > 1073741824) {
-        printf("A mantissa nao pode assumir o valor inserido\n");
-        return 1;
-    }
-
-    if(L < -(536870912) || U >  536870911) {
-        printf("Expoente acima do limite de representacao\n");
-        return 1;
-    }
-    if(L > U) {
-        printf("O limite de expoentes da esquerda nao pode ser maior que o da direita\n");
-        return 1;
-    }
+        if(M < 1|| M > 1073741824) {
+            printf("A mantissa nao pode assumir o valor inserido\n");
+        }
+        if(L < -(536870912) || U >  536870911) {
+            printf("Expoente acima do limite de representacao\n");
+        }
+        if(L > U) {
+            printf("O limite de expoentes da esquerda nao pode ser maior que o da direita\n");
+        }
+    }while(L > U || L < -(536870912) || U >  536870911 || M < 1|| M > 1073741824);
 
     // Limpa o buffer do stdin para remover qualquer caractere extra
     while ((ch = getchar()) != '\n' && ch != EOF);
 
     FFVazia(&Binarios);
+    LimpaTela();
 
     do {
         size_t Alocado = BLOCK_SIZE; // Tamanho inicial alocado
@@ -87,7 +86,7 @@ int main(void) {
         ExplicitaSinal(Entrada);
         // Remove zeros a esquerda e a direita
         RemoveZeros(Entrada);
-
+        
         // --- Numero preparado para a conversao ---
         
         // Recebe a posicao do ponto ou o fim da string
@@ -108,8 +107,12 @@ int main(void) {
 
         if(Entrada[1] != '0') {  // Possui parte inteira
             FilaB FI;
-            
-            long int QtdNums = (Ponto - 1); // Quantidade de numeros
+            long int QtdNums;
+            if(Ponto == 0) {
+                QtdNums = strlen(Entrada) - 1;
+            } else {
+                QtdNums = Ponto - 1;;
+            }
             int PID = QtdNums / 8; // Parte inteira da divisao 
             int MD = QtdNums % 8; // Modulo da divisao
             char *PonteiroConversaoI = &Entrada[1];
@@ -165,20 +168,81 @@ int main(void) {
         } else {
             I.BinarioF = NULL;
         }
+        
+        /*
+        if(I.BinarioI != NULL) {
+            char *ParteInteira = strdup(I.BinarioI);
+            long int TamanhoPI = strlen(I.BinarioI);
+
+            if (ParteInteira == NULL) {
+                perror("Falha na alocacao de memoria");
+                free(ParteInteira); // Libera a célula se a alocação falhar
+                exit(1);
+            }
+
+            if(TamanhoPI < I.Expoente) {
+                ParteInteira = realloc(ParteInteira, I.Expoente + 1);
+                if(ParteInteira == NULL) {
+                   perror("Falha na alocacao de memoria");
+                    free(ParteInteira); // Libera a célula se a alocação falhar
+                    exit(1); 
+                }
+
+                for(long int i = TamanhoPI; i < I.Expoente; i++) {
+                    ParteInteira[i] = '0';
+                }
+                ParteInteira[I.Expoente] = '\0';
+                TamanhoPI = I.Expoente;
+            }
+            
+            
+        }
+
+        if(I.BinarioF != NULL) {
+            char *ParteFracionaria = strdup(I.BinarioF);
+            long int TamanhoPF = strlen(I.BinarioF);
+
+            if(ParteFracionaria == NULL) {
+                perror("Falha na alocacao de memoria");
+                free(ParteFracionaria); // Libera a célula se a alocação falhar
+                exit(1); 
+            }
+
+            if(I.Expoente <= 0) {
+                TamanhoPF -= I.Expoente; 
+                ParteFracionaria = realloc(ParteFracionaria, TamanhoPF);
+
+                if(ParteFracionaria == NULL) {
+                    perror("Falha na alocacao de memoria");
+                    free(ParteFracionaria); // Libera a célula se a alocação falhar
+                    exit(1);
+                }
+
+                for(long int i = TamanhoPF - 1; i >= 0; i--) {
+                    if(i < (-I.Expoente)) {
+
+                    }
+                }
+            }
+
+            
+        }
+        //Criar a funcao converte inteiro em caractere
+        */
 
         Enfileira(&Binarios,I);
         free(Entrada);
         
+        while(!VFVazia(Binarios)) {
+            OutputPadrao(Binarios.Frente->I);
+            Desenfileira(&Binarios);
+        }
+        
         printf("Deseja inserir mais um numero? (s/n): ");
         scanf(" %c", &Verificador);
         while ((ch = getchar()) != '\n' && ch != EOF);
-
+        LimpaTela();
     } while (Verificador != 'N' && Verificador != 'n');  // Sai do loop se 'N' ou 'n' for digitado
-
-    while(!VFVazia(Binarios)) {
-        OutputPadrao(Binarios.Frente->I);
-        Desenfileira(&Binarios);
-    }
 
     return 0;
 }
@@ -328,8 +392,6 @@ void ConverteBinarioPI(FilaB *F,ItemFila *I, long int *LimiteU, long int *Limite
             free(Convertido);
             return;
         }
-       
-        
 
         // Verifica e trata o limite da mantissa (M)
         if(Andado + 1 > *LimiteM) {
@@ -537,11 +599,10 @@ void ConverteBinarioPF(FilaB *F, ItemFila *I, long int *LimiteL, long int *Limit
 
 // Inverte a string
 void InverteString(char str[]) {
-    char aux; // Auxiliar para troca
     size_t esq = 0, dir = strlen(str) - 1; // Índices das extremidades
 
     while (esq < dir) { // Enquanto os índices não se cruzarem
-        aux = str[esq]; // Guarda caractere à esquerda
+        char aux = str[esq]; // Guarda caractere à esquerda
         str[esq++] = str[dir]; // Troca com o da direita
         str[dir--] = aux; // Coloca o guardado à direita
     }
@@ -573,7 +634,30 @@ void OutputPadrao(ItemFila I) {
     }
     printf("\n");
 }
+/*
+// Converte o binário devolta para decimal
+void VoltaDecimal(ItemFila *I) {
+    long int Alocado = BLOCK_SIZE;
+    long int Expoente = I->Expoente;
+    char *Convertido = (char *)malloc(sizeof(Alocado));
+    
+    if(Convertido == NULL) {
+        printf("Nao foi possivel alocar memoria\n");
+        exit(1);
+    }
 
+    Convertido[0] = (I->Sinal == '1') ? '-' : '+' ;
+
+    if(I->BinarioI != NULL) {
+        char *Apontador = Convertido + 1;
+        
+    }
+
+    if(I->BinarioF != NULL) {
+
+    }
+}
+*/
 // Pontenciacao
 long int Potenciacao(long int n, long int e) {
     if (e == 0) {
