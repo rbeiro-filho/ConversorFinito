@@ -9,9 +9,9 @@
 //------ ESTRUTURAS E OPERAÇÕES PARA FILA DE BINÁRIOS ------
 
 typedef struct ItemFila {
-    char Sinal;              // Armazena o sinal do número (positivo ou negativo)
-    long int Expoente;       // Expoente na representação binária
-    char Erros[3];           // Indicadores de erros: Overflow, Underflow e Truncamento
+    char Sinal;             // Armazena o sinal do número (positivo ou negativo)
+    long int Expoente;      // Expoente na representação binária
+    int Erros[4];           // Indicadores de erros: Overflow, Underflow, Arredondamento, Truncamento
     char *BinarioI;
     char *BinarioF;
 } ItemFila;
@@ -41,54 +41,81 @@ void FFVazia(Fila *F) {
 
 // Insere um novo item no final da fila
 void Enfileira(Fila *F, ItemFila I) {
+    // Aloca memória para a nova célula
     FilaApontador aux = (FilaApontador)malloc(sizeof(CelulaFila));
     if (aux == NULL) {
         perror("Falha na alocacao de memoria");
         return;
     }
 
+    if (F == NULL) {
+        printf("Fila nao inicializada\n");
+        free(aux); // Libera a célula alocada se a fila não estiver inicializada
+        return;
+    }
+
     // Copia os dados do item para a nova célula
     aux->I.Sinal = I.Sinal;
     aux->I.Expoente = I.Expoente;
-    aux->I.BinarioI = (char *)malloc(strlen(I.BinarioI) + 1);
-    if (aux->I.BinarioI == NULL) {
-        perror("Falha na alocacao de memoria");
-        return;
-    }
-    memcpy(aux->I.BinarioI, I.BinarioI, strlen(I.BinarioI) + 1);
-    aux->I.BinarioF = (char *)malloc(strlen(I.BinarioF) + 1);
-    if (aux->I.BinarioF == NULL) {
-        perror("Falha na alocacao de memoria");
-        return;
-    }
-    memcpy(aux->I.BinarioF, I.BinarioF, strlen(I.BinarioF) + 1);
 
+    // Aloca e copia a string BinarioI
+    if (I.BinarioI != NULL) {
+        aux->I.BinarioI = strdup(I.BinarioI);
+        if (aux->I.BinarioI == NULL) {
+            perror("Falha na alocacao de memoria");
+            free(aux); // Libera a célula se a alocação falhar
+            return;
+        }
+    } else {
+        aux->I.BinarioI = NULL; // Define como NULL se I.BinarioI for NULL
+    }
+
+    // Aloca e copia a string BinarioF
+    if (I.BinarioF != NULL) {
+        aux->I.BinarioF = strdup(I.BinarioF);
+        if (aux->I.BinarioF == NULL) {
+            perror("Falha na alocacao de memoria");
+            free(aux->I.BinarioI); // Libera a memória de BinarioI se necessário
+            free(aux); // Libera a célula se a alocação falhar
+            return;
+        }
+    } else {
+        aux->I.BinarioF = NULL; // Define como NULL se I.BinarioF for NULL
+    }
+
+    // Copia os erros
+    for (int i = 0; i < 4; i++) {
+        aux->I.Erros[i] = I.Erros[i];
+    }
+
+    // Define o próximo como NULL
     aux->Prox = NULL;
-    if (F->Tras == NULL) {   // Caso a fila esteja vazia
+
+    // Insere na fila
+    if (F->Tras == NULL) { // Caso a fila esteja vazia
         F->Frente = aux;
     } else {
         F->Tras->Prox = aux; // Insere no final
     }
-    F->Tras = aux;
+    F->Tras = aux; // Atualiza o ponteiro tras
 }
+
 
 // Remove o item da frente da fila
 void Desenfileira(Fila *F) {
-    if (VFVazia(*F)) {
+    if(VFVazia(*F)) {
         printf("Fila vazia, nao e possivel desenfileirar.\n");
         return;
     }
 
     FilaApontador aux = F->Frente;
     F->Frente = F->Frente->Prox;
-    if (F->Frente == NULL) { // Se a fila ficou vazia
+    if (F->Frente == NULL) {
         F->Tras = NULL;
     }
 
-    free(aux->I.BinarioF); free(aux->I.BinarioF);   // Libera memória da string binária
-    free(aux);               // Libera a célula
+    free(aux); // Libera a célula
 }
-
 //------------------------------------------------------------------------------
 //------ FILA DE CONVERSÃO DE BINÁRIOS (inteiro e fracionario) ------
 
@@ -142,7 +169,7 @@ void EnfileiraB(FilaB *F, ItemB I) {
 
 // Remove o item da frente da fila
 void DesenfileiraB(FilaB *F) {
-    if (VFVaziaBI(*F)) {
+    if(VFVaziaB(*F)) {
         printf("Fila vazia, nao e possivel desenfileirar.\n");
         return;
     }
