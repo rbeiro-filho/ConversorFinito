@@ -425,7 +425,7 @@ void ConverteBinarioPI(FilaB *F,ItemFila *I, long int *LimiteU, long int *Limite
 void ConverteBinarioPF(FilaB *F, ItemFila *I, long int *LimiteL, long int *LimiteM, long int *LimiteU) {
     long int Alocado = BLOCK_SIZE;
     long int Andado = 0;
-    long int PrimeiroNaoNulo = 0; // Marca a aparição do primeiro número diferente de zero
+    long int PrimeiroNaoNulo = -1; // Marca a aparição do primeiro número diferente de zero
     char *Convertido = (char *)malloc(Alocado);
 
     if (Convertido == NULL) {
@@ -452,17 +452,17 @@ void ConverteBinarioPF(FilaB *F, ItemFila *I, long int *LimiteL, long int *Limit
             aux = aux->Prox;
         }
         
-        if (PrimeiroNaoNulo == 0 && Excedente > 0) {
+        if (PrimeiroNaoNulo == -1 && Excedente > 0) {
             PrimeiroNaoNulo = Andado;
             // Verifica e trata o limite do expoente (U)
-            if ((-1 * PrimeiroNaoNulo) > *LimiteU && I->BinarioI == NULL) {
+            if (((-1) * PrimeiroNaoNulo) > *LimiteU && I->BinarioI == NULL) {
                 I->BinarioF = NULL;
                 I->Erros[0] = 1;
                 free(Convertido);
                 return;
             }
             // Verifica e trata o limite do expoente (L)
-            if ((-1 * PrimeiroNaoNulo) < *LimiteL && I->BinarioI == NULL) {
+            if (((-1) * PrimeiroNaoNulo) < *LimiteL && I->BinarioI == NULL) {
                 I->BinarioF = NULL;
                 I->Erros[1] = 1;
                 free(Convertido);
